@@ -11,7 +11,6 @@ const params = {
   jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
 };
 
-// JWT Strategy
 passport.use(
   new Strategy(params, function (payload, done) {
     User.find({ _id: payload.id })
@@ -26,8 +25,8 @@ passport.use(
 );
 
 const auth = (req, res, next) => {
-  passport.authenticate("jwt", { session: false }, (err, user) => {
-    if (!user || err) {
+  passport.authenticate("jwt", { session: false }, (err, user, info) => {
+    if (err || !user) {
       return res.status(401).json({
         status: "error",
         code: 401,
@@ -35,6 +34,27 @@ const auth = (req, res, next) => {
         data: "Unauthorized",
       });
     }
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        status: "error",
+        code: 401,
+        message: "Unauthorized",
+        data: "Unauthorized",
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    if (user.token !== token) {
+      return res.status(401).json({
+        status: "error",
+        code: 401,
+        message: "Unauthorized",
+        data: "Unauthorized",
+      });
+    }
+
     req.user = user;
     next();
   })(req, res, next);
