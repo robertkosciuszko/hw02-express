@@ -91,22 +91,22 @@ const logout = async (req, res, next) => {
 };
 
 const current = async (req, res, next) => {
-  try {
-    const user = await service.getUser({ _id: req.user._id });
-    if (!user) {
-      return res.status(401).json({ message: "Not authorized" });
-    } else {
-      res.json({
-        status: "success",
-        code: 200,
-        data: {
-          user,
-        },
-      });
-    }
-  } catch (error) {
-    next(error);
+  if (!req.user) {
+    return res.status(401).json({
+      status: "error",
+      code: 401,
+      message: "Unauthorized",
+      data: "Unauthorized",
+    });
   }
+
+  res.json({
+    status: "success",
+    code: 200,
+    data: {
+      user: req.user,
+    },
+  });
 };
 
 const getUsers = async (req, res, next) => {
