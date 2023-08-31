@@ -20,14 +20,13 @@ passport.use(
         }
         return done(null, user);
       })
-      .catch((err) => done(err));
+      .catch((error) => done(error));
   })
 );
 
-const auth = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  passport.authenticate("jwt", { session: false }, (err, user, info) => {
-    if (err || !user || !token || token !== user.token) {
+const authorizeUser = (req, res, next) => {
+  passport.authenticate("jwt", { session: false }, (error, user) => {
+    if (!user || error) {
       return res.status(401).json({
         status: "error",
         code: 401,
@@ -35,10 +34,9 @@ const auth = (req, res, next) => {
         data: "Unauthorized",
       });
     }
-
     req.user = user;
     next();
   })(req, res, next);
 };
 
-module.exports = { auth };
+module.exports = { authorizeUser };
